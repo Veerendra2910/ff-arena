@@ -1,0 +1,9 @@
+# Logs
+*.log
+*.txt
+*.pyc
+__pycache__/
+
+# Scratch & artifacts
+scratch/
+.system_generated/

@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FF Arena — Free Fire Tournament M
+    anagement Platform</title>
+  <meta name="description"
+    content="FF Arena: The ultimate Free Fire tournament management platform with automated match rooms, real-time stats extraction, and live leaderboards.">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    /* ── Screen Share Preview Panel ── */
+    #ss-preview-panel {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 320px;
+      height: 210px;
+      background: #05070b;
+      border: 2px solid #ff2e3f;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(255, 70, 85, 0.4), 0 8px 32px rgba(0, 0, 0, 0.7);
+      z-index: 99998;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      resize: both;
+    }
+
+    #ss-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: rgba(255, 70, 85, 0.12);
+      border-bottom: 1px solid rgba(255, 70, 85, 0.3);
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    #ss-panel-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
+    }
+
+    /* Screen Share Modal Steps */
+    .ss-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .ss-step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .ss-step-text strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .ss-step-text span {
+      font-size: 12px;
+      color: #a0aab8;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Particle Background ── -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- ── Toast Container ── -->
+  <div id="toast-container"></div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!--                  LOGIN PAGE                    -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div id="screen-login" class="auth-screen">
+    <div class="login-box">
+      <div class="login-logo">
+        <span class="logo-icon">🎮</span>
+        <h1>FF ARENA</h1>
+        <p>LOGIN TO YOUR ACCOUNT</p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form">
+        <div class="form-group">
+          <label>USERNAME</label>
+          <input type="text" id="login-username" placeholder="Enter your username" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label>PASSWORD</label>
+          <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password"
+            required>
+        </div>
+        <div style="text-align:right;margin-top:-10px;margin-bottom:16px">
+          <button type="button" class="auth-link-btn" style="font-size:12px" onclick="showAuthScreen('reset')">Forgot
+            Password?</button>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:8px">
+          🚀 LOGIN TO ARENA
+        </button>
+      </form>
+
+      <div class="auth-footer-prompt">
+        <span>Don't have an account?</span>
+        <button type="button" class="auth-link-btn" onclick="showAuthScreen('signup')">Create Account →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!--                 SIGNUP PAGE                    -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div id="screen-signup" class="auth-screen hidden">
+    <div class="login-box">
+      <div class="login-logo">
+        <span class="logo-icon">📝</span>
+        <h1>FF ARENA</h1>
+        <p>CREATE NEW PLAYER ACCOUNT</p>
+      </div>
+
+      <!-- Sign Up Form -->
+      <form id="signup-form">
+        <div class="form-group">
+          <label>USERNAME *</label>
+          <input type="text" id="signup-username" placeholder="Choose a unique username" required autocomplete="off" oninput="checkUsernameAvailability()">
+          <div id="signup-username-feedback" style="font-size:12px;margin-top:4px;font-weight:600;display:none;"></div>
+        </div>
+
+        <div class="form-group">
+          <label>EMAIL ADDRESS *</label>
+          <div style="display:flex;gap:8px">
+            <input type="email" id="signup-email" placeholder="name@example.com" required style="flex:1">
+            <button type="button" class="btn btn-cyan btn-sm" id="btn-send-email-otp" onclick="sendSignupEmailOTP()">
+              📩 Send Code
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>EMAIL VERIFICATION CODE (OTP) *</label>
+          <input type="text" id="signup-email-otp" placeholder="Enter 6-digit verification code" required maxlength="6"
+            autocomplete="off">
+          <div id="otp-feedback" style="font-size:12px;margin-top:4px;color:var(--accent-cyan);display:none"></div>
+        </div>
+
+        <div class="form-group">
+          <label>DISPLAY NAME * (In-Game Alias)</label>
+          <input type="text" id="signup-displayname" placeholder="Choose your unique display name" required
+            autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>FREE FIRE PLAYER UID (ID) *</label>
+          <input type="text" id="signup-playerid" placeholder="e.g. 184920491 or FF-99201" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>PASSWORD *</label>
+          <input type="password" id="signup-password" placeholder="Create a password" required>
+        </div>
+
+        <div class="form-group">
+          <label>RE-ENTER PASSWORD *</label>
+          <input type="password" id="signup-confirm-password" placeholder="Confirm your password" required>
+        </div>
+
+
+
+
+
+
+
+        <button type="submit" class="btn btn-gold btn-full btn-lg" style="margin-top:16px">
+          ✨ CREATE ACCOUNT & ENTER
+        </button>
+      </form>
+
+
+      <div class="auth-footer-prompt">
+        <span>Already registered?</span>
+        <button type="button" class="auth-link-btn" onclick="showAuthScreen('login')">← Back to Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!--             RESET PASSWORD PAGE                 -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div id="screen-reset-password" class="auth-screen hidden">
+    <div class="login-box">
+      <div class="login-logo">
+        <span class="logo-icon">🔑</span>
+        <h1>RESET PASSWORD</h1>
+        <p>VERIFY YOUR IDENTITY</p>
+      </div>
+
+      <!-- Step 1: Username / Email Finder Form -->
+      <form id="reset-find-form">
+        <div class="form-group">
+          <label>ENTER YOUR USERNAME OR EMAIL *</label>
+          <input type="text" id="reset-username" placeholder="e.g. apexlegend or name@gmail.com" required
+            autocomplete="username">
+        </div>
+        <button type="submit" class="btn btn-cyan btn-full">
+          🔍 FIND ACCOUNT & SEND EMAIL CODE
+        </button>
+      </form>
+
+      <!-- Step 2: Email OTP & New Password Form -->
+      <form id="reset-verify-form" class="hidden" style="margin-top:16px">
+        <div
+          style="background:rgba(47,123,255,0.08);border:1px solid rgba(47,123,255,0.25);border-radius:8px;padding:12px;margin-bottom:16px">
+          <div style="font-size:11px;color:var(--text-muted);letter-spacing:1px">REGISTERED EMAIL</div>
+          <div id="reset-email-display" style="font-size:14px;font-weight:600;color:var(--accent-cyan);margin-top:4px">—
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>VERIFICATION CODE (OTP) *</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="reset-otp-input" placeholder="6-digit OTP code" required maxlength="6"
+              autocomplete="off" style="flex:1">
+            <button type="button" class="btn btn-cyan btn-sm" id="btn-resend-reset-otp" onclick="sendResetEmailOTP()">📩
+              Send Code</button>
+          </div>
+          <div id="reset-otp-feedback" style="font-size:12px;margin-top:4px;color:var(--accent-cyan);display:none">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>NEW PASSWORD *</label>
+          <input type="password" id="reset-new-password" placeholder="Enter new strong password" required>
+        </div>
+
+        <button type="submit" class="btn btn-gold btn-full btn-lg" style="margin-top:8px">
+          🔐 RESET PASSWORD & SAVE
+        </button>
+      </form>
+
+
+      <div class="auth-footer-prompt">
+        <span>Remember your password?</span>
+        <button type="button" class="auth-link-btn" onclick="showAuthScreen('login')">← Back to Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!--             PENDING APPROVAL WAITING ROOM       -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div id="screen-pending-approval" class="auth-screen hidden">
+    <div class="login-box" style="text-align:center;max-width:480px">
+      <div
+        style="width:80px;height:80px;border-radius:50%;background:rgba(47,123,255,0.15);border:2px solid var(--accent-gold);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px;box-shadow:0 0 30px rgba(47,123,255,0.3)">
+        ⏳
+      </div>
+      <h2 class="font-orbitron" style="color:var(--accent-gold);margin-bottom:8px">ACCOUNT PENDING APPROVAL</h2>
+      <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;margin-bottom:24px">
+        Welcome to FF Arena! Your account <strong id="pending-username-display"
+          style="color:var(--accent-cyan)"></strong> is currently in the <strong>Waiting Room</strong>.
+        An Admin must approve your registration before you can enter matches and tournaments.
+      </p>
+
+      <div
+        style="background:rgba(47,123,255,0.08);border:1px solid rgba(47,123,255,0.25);border-radius:8px;padding:14px;margin-bottom:24px">
+        <div style="font-size:12px;color:var(--accent-cyan);font-weight:700;letter-spacing:1px">STATUS: WAITING FOR
+          ADMIN APPROVAL</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">This screen will automatically let you in
+          once approved!</div>
+      </div>
+
+      <button type="button" class="btn btn-ghost btn-full" onclick="showAuthScreen('login')">
+        🚪 Return to Login
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!--                    MAIN APP                    -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div id="app">
+
+
+    <!-- Mobile Toggle -->
+    <button class="mobile-toggle" id="mobile-toggle">☰</button>
+    <div class="sidebar-overlay"></div>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-mark">🎮</div>
+          <div>
+            <h2>FF ARENA</h2>
+            <p>TOURNAMENT PLATFORM</p>
+          </div>
+        </div>
+        <div id="server-status-pill" class="server-status-pill online" title="Backend Server Connection Status">
+          <span class="status-indicator-dot"></span>
+          <span id="server-status-text">ONLINE</span>
+          <span id="server-status-ping" style="font-size:10px;opacity:0.75;margin-left:2px">-- ms</span>
+        </div>
+      </div>
+
+      <div class="sidebar-user" onclick="Router.navigate('edit-profile')" style="cursor:pointer"
+        title="Click to view and edit profile">
+        <div class="user-avatar" id="sidebar-avatar">A</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-username">Loading...</div>
+          <div class="role" id="sidebar-role"></div>
+        </div>
+        <span style="margin-left:auto;font-size:12px;color:var(--accent-cyan);opacity:0.85">👤</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Main</div>
+          <div class="nav-item active" data-page="dashboard">
+            <span class="nav-icon">🏠</span> Dashboard
+          </div>
+          <div class="nav-item" data-page="tournaments">
+            <span class="nav-icon">🏆</span> Tournaments
+          </div>
+          <div class="nav-item" data-page="live-matches">
+            <span class="nav-icon">🎮</span> Live Matches
+            <span class="nav-badge" data-notif style="display:none">0</span>
+          </div>
+          <div class="nav-item" data-page="leaderboard">
+            <span class="nav-icon">📊</span> Leaderboard
+          </div>
+          <div class="nav-item" data-page="challenges">
+            <span class="nav-icon">⚔️</span> Challenges
+          </div>
+          <div class="nav-item" data-page="my-team" data-player-only>
+            <span class="nav-icon">👥</span> My Team
+          </div>
+          <div class="nav-item" data-page="edit-profile">
+            <span class="nav-icon">👤</span> My Profile
+          </div>
+        </div>
+
+
+        <div class="nav-section" data-admin-only>
+          <div class="nav-section-title">Admin</div>
+          <div class="nav-item" data-page="waiting-halls">
+            <span class="nav-icon">⏳</span> Waiting Halls
+            <span class="nav-badge" id="waiting-hall-count-badge"
+              style="display:none;background:var(--accent-gold);color:#000;font-weight:700">0</span>
+          </div>
+          <div class="nav-item" data-page="admin">
+            <span class="nav-icon">🔐</span> Admin Panel
+          </div>
+        </div>
+
+      </nav>
+
+
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-full" id="btn-logout">
+          🚪 Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main class="main-content">
+
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <div style="font-size:13px;color:var(--text-secondary)">
+          Welcome back, <span id="topbar-name" style="color:var(--text-primary);font-weight:600"></span>
+        </div>
+        <div class="top-bar-right">
+          <div class="top-bar-time" id="live-clock">00:00:00</div>
+          <div class="notif-bell" id="notif-bell-btn">
+            🔔
+            <div class="bell-count" id="notif-count" style="display:none">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PAGE: DASHBOARD ── -->
+      <section class="page-section active" id="page-dashboard">
+        <div class="empty-state">
+          <div class="empty-icon">⚡</div>
+          <p>Loading dashboard...</p>
+        </div>
+      </section>
+
+      <!-- ── PAGE: TOURNAMENTS ── -->
+      <section class="page-section" id="page-tournaments">
+        <div class="empty-state">
+          <div class="empty-icon">🏆</div>
+          <p>Loading tournaments...</p>
+        </div>
+      </section>
+
+      <!-- ── PAGE: LIVE MATCHES ── -->
+      <section class="page-section" id="page-live-matches">
+        <div class="empty-state">
+          <div class="empty-icon">🎮</div>
+          <p>Loading match rooms...</p>
+        </div>
+      </section>
+
+      <!-- ── PAGE: LEADERBOARD ── -->
+      <section class="page-section" id="page-leaderboard">
+        <div class="empty-state">
+          <div class="empty-icon">📊</div>
+          <p>Loading leaderboard...</p>
+        </div>
+      </section>
+
+      <!-- ── PAGE: MY TEAM ── -->
+      <section class="page-section" id="page-my-team">
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <p>Loading team...</p>
+        </div>
+      </section>
+
+      <!-- ── PAGE: WAITING HALLS (ADMIN) ── -->
+      <section class="page-section" id="page-waiting-halls">
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <p>Loading waiting halls...</p>
+        </div>
+      </section>
+
+      <!-- ── PAGE: ADMIN ── -->
+      <section class="page-section" id="page-admin">
+
+        <div class="empty-state">
+          <div class="empty-icon">🔐</div>
+          <p>Loading admin panel...</p>
+        </div>
+      </section>
+
+      <!-- ── PAGE: EDIT PROFILE ── -->
+      <section class="page-section" id="page-edit-profile">
+        <div class="empty-state">
+          <div class="empty-icon">👤</div>
+          <p>Loading profile settings...</p>
+        </div>
+      </section>
+
+      <!-- ── PAGE: CHALLENGES ── -->
+      <section class="page-section" id="page-challenges">
+        <div class="empty-state">
+          <div class="empty-icon">⚔️</div>
+          <p>Loading challenges...</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!--                    MODALS                      -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <!-- ── MODAL: Create Challenge ── -->
+  <div class="modal-overlay hidden" id="modal-create-challenge">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>⚔️ Create Challenge</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-create-challenge">
+          <div class="form-group">
+            <label>GAME MODE *</label>
+            <select id="challenge-mode">
+              <option value="1v1 Solo">1v1 Solo</option>
+              <option value="2v2 Duo">2v2 Duo</option>
+              <option value="4v4 Squad">4v4 Squad</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>MAP *</label>
+            <select id="challenge-map">
+              <option value="Bermuda">Bermuda</option>
+              <option value="Kalahari">Kalahari</option>
+              <option value="Purgatory">Purgatory</option>
+              <option value="Alpine">Alpine</option>
+            </select>
+          </div>
+
+          <!-- Stake/coins removed — no payment gateway in this version -->
+
+          <div class="form-group">
+            <label>CHALLENGE NOTE / MESSAGE</label>
+            <input type="text" id="challenge-note" placeholder="e.g. Snipers only / CS Bermuda 1v1">
+          </div>
+
+          <div class="modal-footer" style="padding:16px 0 0;margin:0;border:none">
+            <button type="submit" class="btn btn-gold btn-full btn-lg">
+              ⚔️ ISSUE CHALLENGE NOW
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Match Room Lobby ── -->
+  <div class="modal-overlay hidden" id="modal-lobby">
+
+
+
+    <div class="modal modal-xl">
+      <div class="modal-header">
+        <h3>🎮 Match Room Lobby</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="lobby-wrapper">
+          <div class="lobby-header">
+            <div>
+              <div class="lobby-title">🎮 Room: <span id="lobby-room-code" style="color:var(--accent-cyan)">—</span>
+              </div>
+              <div style="margin-top:6px;display:flex;gap:10px;flex-wrap:wrap">
+                <span id="lobby-status-badge"></span>
+                <span style="font-size:13px;color:var(--text-secondary)">Host: <strong id="lobby-host"></strong></span>
+                <span style="font-size:13px;color:var(--text-secondary)">🗺️ <span id="lobby-map"></span> · ⚔️ <span
+                    id="lobby-mode"></span> · 👥 <span id="lobby-player-count"></span></span>
+              </div>
+            </div>
+            <div class="text-right">
+              <div style="font-size:11px;color:var(--text-muted);letter-spacing:1px;margin-bottom:4px">MATCH TIMER</div>
+              <div class="lobby-timer" id="lobby-timer">00:00:00</div>
+            </div>
+          </div>
+
+          <div id="lobby-release-banner" style="margin-bottom:16px"></div>
+
+          <div class="lobby-body">
+
+            <div class="grid-2" style="gap:24px">
+              <div>
+                <div class="card-title mb-12">PLAYERS IN ROOM</div>
+                <div class="lobby-players" id="lobby-players-list"></div>
+              </div>
+              <div>
+                <div class="card-title mb-12">ROOM CODES</div>
+                <div class="lobby-codes">
+                  <div class="code-row">
+                    <span class="code-label">Room Code</span>
+                    <span class="code-value" id="lobby-room-code-2"></span>
+                    <button class="btn btn-ghost btn-sm" id="lobby-copy-code">📋</button>
+                  </div>
+                  <div class="code-row">
+                    <span class="code-label">Password</span>
+                    <span class="code-value" id="lobby-password">—</span>
+                    <button class="btn btn-ghost btn-sm" id="lobby-copy-pass">📋</button>
+                  </div>
+                </div>
+
+                <div class="card-title mb-12">QR CODE</div>
+                <div class="qr-wrapper qr-container">
+                  <div id="lobby-qr"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="neon-divider"></div>
+            <div class="lobby-actions" id="lobby-actions"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Create Room ── -->
+  <div class="modal-overlay hidden" id="modal-create-room">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🎮 Create Match Room</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-create-room">
+          <div class="form-row">
+            <div class="form-group">
+              <label>MAP</label>
+              <select id="room-map">
+                <option>Bermuda</option>
+                <option>Kalahari</option>
+                <option>Purgatory</option>
+                <option>Alpine</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>GAME MODE</label>
+              <select id="room-mode">
+                <option>Squad</option>
+                <option>Duo</option>
+                <option>Solo</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>MAX PLAYERS (Type any number) *</label>
+              <input type="number" id="room-max-players" min="2" max="100" value="12" placeholder="e.g. 12, 48, 100"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label>LINKED TOURNAMENT (Optional)</label>
+              <select id="room-tournament"></select>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px">
+            ℹ️ Room code and password will be auto-generated.
+          </p>
+          <div class="modal-footer" style="padding:16px 0 0;margin:0;border:none;justify-content:flex-start">
+            <button type="submit" class="btn btn-primary">🚀 Create Room</button>
+            <button type="button" class="btn btn-ghost" data-close-modal>Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Create Tournament ── -->
+  <div class="modal-overlay hidden" id="modal-create-tournament">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3>🏆 Create Tournament</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>TOURNAMENT NAME *</label>
+          <input type="text" id="t-name" placeholder="e.g. Season 2 — Bermuda Championship">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>GAME MODE</label>
+            <select id="t-mode">
+              <option>Squad</option>
+              <option>Duo</option>
+              <option>Solo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>MAP</label>
+            <select id="t-map">
+              <option>Bermuda</option>
+              <option>Kalahari</option>
+              <option>Purgatory</option>
+              <option>Alpine</option>
+            </select>
+          </div>
+        </div>
+        <!-- Entry fee and prize pool removed — no payment gateway in this version -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>MAX TEAMS</label>
+            <select id="t-maxteams">
+              <option value="4">4</option>
+              <option value="8" selected>8</option>
+              <option value="12">12</option>
+              <option value="16">16</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>REGISTRATION DEADLINE *</label>
+            <input type="date" id="t-deadline">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>TOURNAMENT DATE *</label>
+          <input type="date" id="t-date">
+        </div>
+
+        <div class="divider"></div>
+        <div class="card-title mb-12">📅 MATCH SCHEDULE (Optional)</div>
+        <div id="schedule-fields">
+          <div class="form-row mb-12" id="sched-0">
+            <div class="form-group"><label>Quarter Finals — Date</label><input type="date" id="t-sched-date-0"></div>
+            <div class="form-group"><label>Time</label><input type="time" id="t-sched-time-0" value="18:00"></div>
+          </div>
+          <div class="form-row mb-12" id="sched-1">
+            <div class="form-group"><label>Semi Finals — Date</label><input type="date" id="t-sched-date-1"></div>
+            <div class="form-group"><label>Time</label><input type="time" id="t-sched-time-1" value="19:00"></div>
+          </div>
+          <div class="form-row mb-12" id="sched-2">
+            <div class="form-group"><label>Grand Finals — Date</label><input type="date" id="t-sched-date-2"></div>
+            <div class="form-group"><label>Time</label><input type="time" id="t-sched-time-2" value="20:00"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="createTournament()">🏆 Create Tournament</button>
+        <button class="btn btn-ghost" data-close-modal>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Tournament Detail ── -->
+  <div class="modal-overlay hidden" id="modal-tournament-detail">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-tournament-detail-title">Tournament Details</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body" id="modal-tournament-detail-body"></div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Edit Tournament Status ── -->
+  <div class="modal-overlay hidden" id="modal-edit-tournament">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Manage Tournament</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="modal-edit-tournament-id">
+        <p style="color:var(--text-secondary);margin-bottom:16px" id="modal-edit-tournament-name"></p>
+        <div class="form-group">
+          <label>STATUS</label>
+          <select id="edit-tournament-status"></select>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:space-between">
+        <button class="btn btn-danger" onclick="deleteTournament(document.getElementById('modal-edit-tournament-id').value)" style="background:rgba(255,46,63,0.2);border:1px solid rgba(255,46,63,0.4);color:var(--accent-red)">🗑️ Delete Tournament</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="saveEditTournament()">Save Changes</button>
+          <button class="btn btn-ghost" data-close-modal>Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Register Team ── -->
+  <div class="modal-overlay hidden" id="modal-register-team">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>📋 Register Team</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reg-tournament-id">
+        <div
+          style="background:rgba(47,123,255,0.08);border:1px solid rgba(47,123,255,0.2);border-radius:8px;padding:12px;margin-bottom:16px">
+          <div style="font-size:12px;color:var(--text-muted)">Tournament</div>
+          <div style="font-size:15px;font-weight:600" id="reg-tournament-name"></div>
+          <div style="font-size:12px;color:var(--accent-green);margin-top:4px">✅ Free Entry</div>
+          <!-- entry fee hidden element kept for JS compat -->
+          <span id="reg-entry-fee" style="display:none"></span>
+        </div>
+        <div class="form-group"><label>TEAM NAME *</label><input type="text" id="reg-team-name"
+            placeholder="Alpha Squad"></div>
+        <div class="form-group"><label>CAPTAIN NAME *</label><input type="text" id="reg-captain"
+            placeholder="Your in-game name"></div>
+        <div class="form-group"><label>CONTACT EMAIL</label><input type="email" id="reg-email"
+            placeholder="team@email.com"></div>
+        <div class="divider"></div>
+        <div class="card-title mb-12">PLAYER ROSTER</div>
+        <div id="reg-players-section"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="submitTeamReg()">✅ Register Team</button>
+        <button class="btn btn-ghost" data-close-modal>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Enter Match Stats ── -->
+  <div class="modal-overlay hidden" id="modal-enter-stats">
+    <div class="modal modal-xl">
+      <div class="modal-header">
+        <h3>📊 Enter Match Stats</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row mb-16">
+          <div class="form-group">
+            <label>ROOM CODE</label>
+            <input type="text" id="stats-room-code" placeholder="FF-2026-08-18-001">
+          </div>
+          <div class="form-group">
+            <label>TOURNAMENT (Optional)</label>
+            <select id="stats-tournament"></select>
+          </div>
+        </div>
+
+        <div class="form-row mb-16">
+          <div class="form-group">
+            <label>TEAM A</label>
+            <select id="stats-team-a"></select>
+          </div>
+          <div class="form-group">
+            <label>TEAM B</label>
+            <select id="stats-team-b"></select>
+          </div>
+        </div>
+
+        <div class="grid-2" style="gap:20px">
+          <div id="stats-form-a">
+            <div class="empty-state" style="padding:20px">
+              <p>Select Team A</p>
+            </div>
+          </div>
+          <div id="stats-form-b">
+            <div class="empty-state" style="padding:20px">
+              <p>Select Team B</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div
+          style="background:rgba(47,123,255,0.08);border:1px solid rgba(47,123,255,0.2);border-radius:8px;padding:12px;">
+          <div style="font-size:12px;color:var(--accent-gold);font-weight:600;margin-bottom:6px">⚡ AUTO-CALCULATED</div>
+          <div style="font-size:12px;color:var(--text-secondary)">
+            Placement Points · Kill Points · Team Kill Bonus (+2 pts) · MVP determination · Leaderboard update — all
+            automatic upon submission.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-gold" onclick="submitMatchStats()">✅ Confirm Stats & Update Leaderboard</button>
+        <button class="btn btn-ghost" data-close-modal>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Create User ── -->
+  <div class="modal-overlay hidden" id="modal-create-user">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>👤 Create User</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group"><label>USERNAME *</label><input type="text" id="new-user-username"
+            placeholder="johndoe"></div>
+        <div class="form-group"><label>DISPLAY NAME *</label><input type="text" id="new-user-display"
+            placeholder="JohnDoe"></div>
+        <div class="form-group"><label>PASSWORD *</label><input type="password" id="new-user-password"
+            placeholder="Strong password"></div>
+        <div class="form-group">
+          <label>ROLE</label>
+          <select id="new-user-role">
+            <option value="player">Player</option>
+            <option value="coadmin">Co-Admin</option>
+            <option value="spectator">Spectator</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="createUser()">Create User</button>
+        <button class="btn btn-ghost" data-close-modal>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Edit User ── -->
+  <div class="modal-overlay hidden" id="modal-edit-user">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>✏️ Edit User</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-user-id">
+        <div class="form-group"><label>DISPLAY NAME</label><input type="text" id="edit-user-display"></div>
+        <div class="form-group">
+          <label>ROLE</label>
+          <select id="edit-user-role">
+            <option value="player">Player</option>
+            <option value="coadmin">Co-Admin</option>
+            <option value="spectator">Spectator</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="form-group"><label>NEW PASSWORD (leave blank to keep current)</label><input type="password"
+            id="edit-user-password" placeholder="Leave blank to keep"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="saveEditUser()">Save Changes</button>
+        <button class="btn btn-ghost" data-close-modal>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Reject / Remove Pending Player ── -->
+  <div class="modal-overlay hidden" id="modal-reject-player">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="color:var(--accent-red);display:flex;align-items:center;gap:8px">❌ Reject Player Registration</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reject-user-id">
+        <div style="background:rgba(255,46,63,0.08);border:1px solid rgba(255,46,63,0.25);border-radius:8px;padding:14px;margin-bottom:18px">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:2px">PLAYER TO REJECT & NOTIFY:</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text-primary)" id="reject-player-display"></div>
+          <div style="font-size:12px;color:var(--accent-cyan);margin-top:2px" id="reject-player-email"></div>
+        </div>
+
+        <div class="form-group">
+          <label>SELECT COMMON REASON (QUICK PRESET)</label>
+          <select id="reject-preset-reason" onchange="applyRejectPreset(this.value)">
+            <option value="">— Custom Reason —</option>
+            <option value="Your Free Fire Player UID is invalid or does not match. Please register again with your exact in-game UID.">Invalid Free Fire UID</option>
+            <option value="Inappropriate or offensive username/display name. Please register with a respectful player alias.">Inappropriate Name / Alias</option>
+            <option value="Duplicate account detected. You already have an approved player account on FF Arena.">Duplicate Account</option>
+            <option value="Incomplete or unverified registration information. Please sign up again with accurate details.">Incomplete Information</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>REMOVAL REASON / MESSAGE TO PLAYER * (Emailed directly to player)</label>
+          <textarea id="reject-reason-text" placeholder="Explain why the registration was rejected so the player understands what to correct..." style="min-height:90px;font-family:'Rajdhani',sans-serif;font-size:14px" required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:space-between">
+        <button class="btn btn-ghost" data-close-modal>Cancel</button>
+        <button class="btn btn-danger" id="btn-confirm-reject" onclick="confirmRejectUser()">
+          📩 Reject & Send Email
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Confirm Action ── -->
+  <div class="modal-overlay hidden" id="modal-confirm">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>⚠️ Confirm Action</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-text" id="confirm-msg">Are you sure?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="confirm-action-btn">Confirm</button>
+        <button class="btn btn-ghost" data-close-modal>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Topbar name sync
+    document.addEventListener('DOMContentLoaded', () => {
+      const orig = window.showApp;
+      window.showApp = function () {
+        orig.call(this);
+        const nb = document.getElementById('topbar-name');
+        if (nb && Auth.current) nb.textContent = Auth.current.displayName;
+      };
+
+      // Also update lobby-room-code-2 mirror
+      const origLobby = window.openLobby;
+      window.openLobby = function (id) {
+        origLobby.call(this, id);
+        const el1 = document.getElementById('lobby-room-code');
+        const el2 = document.getElementById('lobby-room-code-2');
+        if (el1 && el2) el2.textContent = el1.textContent;
+      };
+    });
+  </script>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!--               CHAT SYSTEM                      -->
+  <!-- ═══════════════════════════════════════════════ -->
+
+  <!-- Floating Chat Button -->
+  <button id="chat-fab" title="Open Chat" aria-label="Open chat">
+    💬
+    <span class="chat-unread-badge" id="chat-unread">0</span>
+  </button>
+
+  <!-- Chat Panel -->
+  <div id="chat-panel" role="dialog" aria-label="Chat">
+
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-header-top">
+        <span class="chat-title">💬 FF ARENA CHAT</span>
+        <button class="chat-close-btn" id="chat-close-btn" aria-label="Close chat">✕</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="chat-tabs">
+        <button class="chat-tab active" id="chat-tab-global" onclick="Chat.switchTab('global')">🌐 Global</button>
+        <button class="chat-tab" id="chat-tab-room" onclick="Chat.switchTab('room')">🎮 Room</button>
+        <button class="chat-tab" id="chat-tab-tourney" onclick="Chat.switchTab('tourney')">🏆 Tournament</button>
+      </div>
+
+      <div class="chat-online">
+        <div class="online-dot"></div>
+        <span id="chat-online-count">1 online</span>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chat-messages-list">
+      <div class="chat-empty">
+        <div class="empty-emoji">💬</div>
+        <p>No messages yet.<br>Be the first to say something!</p>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div class="typing-indicator" id="chat-typing">
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+      <span id="chat-typing-name">Someone</span> is typing...
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-area">
+      <div class="chat-input-row">
+        <div class="chat-input-wrap">
+          <textarea id="chat-input" rows="1" placeholder="Type a message... (Enter to send)"></textarea>
+          <button class="emoji-btn" id="emoji-toggle-btn" title="Emoji">😊</button>
+        </div>
+        <div class="emoji-picker-wrap">
+          <div class="emoji-picker" id="emoji-picker">
+            <div class="emoji-grid" id="emoji-grid"></div>
+          </div>
+        </div>
+        <button class="send-btn" id="chat-send-btn" title="Send">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: Screen Share Launch ── -->
+  <div class="modal-overlay hidden" id="modal-screen-share">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🎮 Play Free Fire + Live Stream</h3>
+        <button class="modal-close" data-close-modal>✕</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Room Badge -->
+        <div
+          style="background:rgba(255,46,63,0.08);border:1px solid rgba(255,46,63,0.25);border-radius:8px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:24px">🏟️</div>
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);letter-spacing:1px">MATCH ROOM</div>
+            <div id="ss-room-code-display"
+              style="font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:var(--accent-cyan)">—</div>
+          </div>
+          <div style="margin-left:auto">
+            <div
+              style="width:8px;height:8px;border-radius:50%;background:var(--accent-red);animation:pulse-green 1s infinite">
+            </div>
+          </div>
+        </div>
+
+        <!-- Steps -->
+        <div class="ss-step">
+          <div class="ss-step-num" style="background:linear-gradient(135deg,#2f7bff,#1e56c8)">1</div>
+          <div class="ss-step-text">
+            <strong>Open Free Fire</strong>
+            <span>Tap the button below to launch Free Fire on your device. If installed, it opens automatically.</span>
+          </div>
+        </div>
+
+        <div class="ss-step">
+          <div class="ss-step-num" style="background:linear-gradient(135deg,#2f7bff,#1e56c8)">2</div>
+          <div class="ss-step-text">
+            <strong>Start Screen Share</strong>
+            <span>Click "Start Sharing" below. Your browser will ask what to share — pick your Free Fire screen or
+              window.</span>
+          </div>
+        </div>
+
+        <div class="ss-step">
+          <div class="ss-step-num" style="background:linear-gradient(135deg,#2f7bff,#1e56c8)">3</div>
+          <div class="ss-step-text">
+            <strong>Use PiP (Picture-in-Picture)</strong>
+            <span>After sharing starts, click the ⊡ PiP button on the preview panel to keep your stream visible while
+              you play.</span>
+          </div>
+        </div>
+
+        <div
+          style="background:rgba(47,123,255,0.06);border:1px solid rgba(47,123,255,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--accent-gold);margin-top:4px">
+          ⚡ Admin and spectators will see a <strong>🔴 LIVE</strong> indicator in the lobby when you start streaming.
+        </div>
+      </div>
+      <div class="modal-footer" style="flex-direction:column;gap:10px;align-items:stretch">
+        <button class="btn btn-primary btn-full" id="ss-open-ff-btn"
+          style="background:linear-gradient(135deg,#ff2e3f,#7a8ba3);justify-content:center">
+          🎮 Open Free Fire App
+        </button>
+        <button class="btn btn-cyan btn-full" id="ss-start-btn" style="justify-content:center">
+          📺 Start Screen Share
+        </button>
+        <button class="btn btn-ghost btn-full" data-close-modal style="justify-content:center">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

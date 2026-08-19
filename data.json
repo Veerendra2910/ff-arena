@@ -1,0 +1,196 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "username": "admin",
+      "displayName": "Admin",
+      "role": "admin",
+      "status": "active",
+      "playerId": "FF-2026-000",
+      "createdAt": 1700000000000,
+      "lastLogin": 1787159330010,
+      "totalKills": 0,
+      "totalAssists": 0,
+      "totalDamage": 0,
+      "bestKills": 0,
+      "totalHeadshots": 0,
+      "top3": 0,
+      "wins": 0,
+      "passwordHash": "2573bf9a3322cb0187669bbf9b598a00160c096d3d147180de7f17f638107007",
+      "salt": "4153a8aeb827ee6d0f5147d44f00071a"
+    },
+    {
+      "id": "id_bt8532hj",
+      "username": "Manoj",
+      "displayName": "Manoj",
+      "role": "player",
+      "status": "active",
+      "playerId": "FF-2026-002",
+      "createdAt": 1787072306936,
+      "lastLogin": 1787144969771,
+      "totalKills": 0,
+      "totalAssists": 0,
+      "totalDamage": 0,
+      "bestKills": 0,
+      "totalHeadshots": 0,
+      "top3": 0,
+      "wins": 0,
+      "passwordHash": "0801888698905d61b4220f121d4c65abb0940d7931aca6fb190c644459bb4211",
+      "salt": "b7b0028b2eea73cd902d5d7fb4d3aa8d"
+    },
+    {
+      "id": "id_a9u9k7ah",
+      "username": "fgcuuy",
+      "email": "manojgottumukkala7299@gmail.com",
+      "displayName": "uueyf",
+      "role": "player",
+      "status": "active",
+      "playerId": "iugi",
+      "createdAt": 1787081007269,
+      "lastLogin": 1787081040280,
+      "totalKills": 0,
+      "totalAssists": 0,
+      "totalDamage": 0,
+      "bestKills": 0,
+      "totalHeadshots": 0,
+      "top3": 0,
+      "wins": 0,
+      "passwordHash": "1fade4b6121dad3eb84bef8b939d9ed542b18dd73dc73dccfc24d0ffca9b7cd0",
+      "salt": "d423991bb09ff8347ddcf3218492e36e"
+    }
+  ],
+  "tournaments": [
+    {
+      "id": "id_8dzfc7c5",
+      "name": "Normal",
+      "gameMode": "Duo",
+      "map": "Bermuda",
+      "maxTeams": 16,
+      "currentTeams": 0,
+      "registrationDeadline": "2026-08-19",
+      "tournamentDate": "2026-08-20",
+      "status": "completed",
+      "schedule": [
+        {
+          "round": "Quarter Finals",
+          "date": "2026-08-19",
+          "time": "18:00"
+        }
+      ],
+      "createdAt": 1787073835855
+    },
+    {
+      "id": "id_o3a3w57e",
+      "name": "fyjy",
+      "gameMode": "Solo",
+      "map": "Kalahari",
+      "maxTeams": 16,
+      "currentTeams": 0,
+      "registrationDeadline": "2026-08-19",
+      "tournamentDate": "2026-08-20",
+      "status": "completed",
+      "schedule": [],
+      "createdAt": 1787144611212
+    }
+  ],
+  "teams": [
+    {
+      "id": "id_drq77tum",
+      "tournamentId": "id_8dzfc7c5",
+      "teamName": "War kings",
+      "captainName": "Sai",
+      "captainId": "id_bt8532hj",
+      "contactEmail": "gaganveerendra@gmail.com",
+      "players": [
+        {
+          "name": "Sai",
+          "userId": null
+        },
+        {
+          "name": "Manoj",
+          "userId": null
+        }
+      ],
+      "paymentStatus": "pending",
+      "registeredAt": 1787077772745,
+      "totalPoints": 0,
+      "totalKills": 0
+    },
+    {
+      "id": "id_2s21tpha",
+      "tournamentId": "id_o3a3w57e",
+      "teamName": "Bbu",
+      "captainName": "Ghh",
+      "captainId": "id_bt8532hj",
+      "contactEmail": "",
+      "players": [
+        {
+          "name": "Ghh",
+          "userId": "id_bt8532hj"
+        }
+      ],
+      "paymentStatus": "paid",
+      "registeredAt": 1787144637805,
+      "totalPoints": 0,
+      "totalKills": 0
+    }
+  ],
+  "matchRooms": [],
+  "matches": [],
+  "leaderboard": [],
+  "payments": [],
+  "notifications": [],
+  "chats": {
+    "global": [
+      {
+        "id": "id_o96e342v",
+        "tab": "global",
+        "userId": "system",
+        "displayName": "FF Arena",
+        "text": "\ud83d\udc4b Welcome to FF Arena Chat! Say hello to your fellow players.",
+        "type": "system",
+        "ts": 1787072615476
+      },
+      {
+        "id": "id_vnbycy56",
+        "tab": "global",
+        "userId": "id_bt8532hj",
+        "displayName": "Manoj",
+        "text": "Hi",
+        "type": "user",
+        "ts": 1787144744486
+      },
+      {
+        "id": "id_f4016ze2",
+        "tab": "global",
+        "userId": "id_bt8532hj",
+        "displayName": "Manoj",
+        "text": "\u2764\ufe0f",
+        "type": "user",
+        "ts": 1787144772537
+      }
+    ],
+    "room": [
+      {
+        "id": "id_pdylbj6v",
+        "tab": "room",
+        "userId": "u1",
+        "displayName": "Admin",
+        "text": "Hi",
+        "type": "user",
+        "ts": 1787073427886
+      }
+    ],
+    "tourney": []
+  },
+  "_initialized": true,
+  "_version": 1,
+  "activeSessions": [
+    {
+      "userId": "u1",
+      "deviceId": "dev_id_6qytj6xv",
+      "role": "admin",
+      "lastActive": 1787077458275
+    }
+  ]
+}

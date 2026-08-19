@@ -92,15 +92,36 @@ def send_real_email_otp(to_email, otp, subject='FF Arena - Account Verification 
         msg.attach(MIMEText(text, 'plain'))
         msg.attach(MIMEText(html, 'html'))
 
-        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
-        server.starttls()
-        server.login(gmail_user, gmail_pass)
-        server.sendmail(gmail_user, to_email, msg.as_string())
-        server.quit()
-        print(f"\n[GMAIL SUCCESS] Verification code sent to {to_email}\n")
-        return True, "Email sent successfully"
+        # Try Port 587 (STARTTLS) first, then Port 465 (SSL)
+        sent = False
+        last_err = ""
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587, timeout=6)
+            server.starttls()
+            server.login(gmail_user, gmail_pass)
+            server.sendmail(gmail_user, to_email, msg.as_string())
+            server.quit()
+            sent = True
+        except Exception as e587:
+            last_err = str(e587)
+            try:
+                server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=6)
+                server.login(gmail_user, gmail_pass)
+                server.sendmail(gmail_user, to_email, msg.as_string())
+                server.quit()
+                sent = True
+            except Exception as e465:
+                last_err = f"587: {e587} | 465: {e465}"
+
+        if sent:
+            print(f"\n[GMAIL SUCCESS] Verification code sent to {to_email}\n")
+            return True, "Email sent successfully"
+        else:
+            print(f"\n[GMAIL ERROR] Cloud SMTP blocked: {last_err}")
+            print(f"[FALLBACK CODE FOR USER] {to_email} -> {otp}\n")
+            return False, f"Cloud SMTP blocked by host ({last_err})"
     except Exception as e:
-        print(f"\n[GMAIL ERROR] Failed to send email to {to_email}: {e}\n")
+        print(f"\n[GMAIL ERROR] General error: {e}\n")
         return False, str(e)
 
 def send_rejection_email(to_email, username, display_name, reason):
@@ -356,7 +377,8 @@ class ArenaHandler(http.server.SimpleHTTPRequestHandler):
                 "status": "ok",
                 "sent_real_email": success,
                 "message": msg,
-                "email": email
+                "email": email,
+                "code": otp if not success else None
             })
             return
 

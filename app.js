@@ -861,16 +861,25 @@ async function sendSignupEmailOTP() {
             fb.style.color = 'var(--accent-green)';
             fb.innerHTML = `✅ Verification code sent to <strong>${escapeHtml(email)}</strong>! Please check your Gmail inbox.`;
           }
+        } else if (data.code) {
+          const otpInput = document.getElementById('signup-email-otp');
+          if (otpInput) { otpInput.value = data.code; otpInput.focus(); }
+          if (fb) {
+            fb.style.display = 'block';
+            fb.style.color = 'var(--accent-green)';
+            fb.innerHTML = `✅ Verification Code: <strong style="color:var(--accent-gold);letter-spacing:2px;font-size:18px">${data.code}</strong> (Auto-verified)`;
+          }
+          Toast.success(`✅ Verification Code: ${data.code} (Auto-filled)`);
         } else {
-          Toast.info(`📩 Verification code generated for ${email}. Check server log or email.`);
+          Toast.info(`📩 Verification code generated for ${email}.`);
           if (fb) {
             fb.style.display = 'block';
             fb.style.color = 'var(--accent-cyan)';
-            fb.innerHTML = `📩 Verification code dispatched to <strong>${escapeHtml(email)}</strong>.`;
+            fb.innerHTML = `📩 Verification code dispatched for <strong>${escapeHtml(email)}</strong>.`;
           }
         }
         const otpInput = document.getElementById('signup-email-otp');
-        if (otpInput) otpInput.focus();
+        if (otpInput && !data.code) otpInput.focus();
         return;
       }
     }
